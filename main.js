@@ -11,15 +11,16 @@ async function init() {
     model = await tmImage.load(modelURL, metadataURL);
     maxPredictions = model.getTotalClasses();
 
-    // Convenience function to setup a webcam
-    const flip = false; // don't flip the webcam for rear camera
+    // Set up the webcam with constraints to use the rear camera
     const constraints = {
         video: {
-            facingMode: { exact: "environment" } // Use the rear camera
+            facingMode: "environment" // Use the rear camera
         }
     };
-    webcam = new tmImage.Webcam(200, 200, flip, constraints); // width, height, flip, constraints
-    await webcam.setup(); // request access to the webcam
+
+    const flip = false; // Don't flip the webcam
+    webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+    await webcam.setup(constraints); // Pass constraints here
     await webcam.play();
     window.requestAnimationFrame(loop);
 
