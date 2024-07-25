@@ -1,6 +1,7 @@
 const URL = "https://teachablemachine.withgoogle.com/models/64kdLVpfa/";
 
 let model, webcam, labelContainer, maxPredictions;
+let isUsingFrontCamera = true;
 
 // Load the image model and setup the webcam
 async function init() {
@@ -11,41 +12,48 @@ async function init() {
     model = await tmImage.load(modelURL, metadataURL);
     maxPredictions = model.getTotalClasses();
 
-    // Set up the webcam with constraints to use the rear camera
+    await setupWebcam();
+}
+
+async function setupWebcam() {
+    const flip = isUsingFrontCamera;
     const constraints = {
         video: {
-            facingMode: { exact: "environment" } // Use the rear camera
+            facingMode: isUsingFrontCamera ? "user" : { exact: "environment" }
         }
     };
 
-    const flip = false; // Don't flip the webcam
-    webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+    if (webcam) {
+        webcam.stop();
+    }
+
+    webcam = new tmImage.Webcam(200, 200, flip);
     try {
-        await webcam.setup(constraints); // Pass constraints here
+        await webcam.setup(constraints);
         await webcam.play();
         window.requestAnimationFrame(loop);
 
-        // append elements to the DOM
+        document.getElementById("webcam-container").innerHTML = '';
         document.getElementById("webcam-container").appendChild(webcam.canvas);
+
         labelContainer = document.getElementById("label-container");
-        for (let i = 0; i < maxPredictions; i++) { // and class labels
+        labelContainer.innerHTML = '';
+        for (let i = 0; i < maxPredictions; i++) {
             labelContainer.appendChild(document.createElement("div"));
         }
     } catch (error) {
         console.error("Error setting up webcam:", error);
-        alert("Failed to access the rear camera. Please make sure you've granted the necessary permissions and that your device has a rear camera.");
+        alert("Failed to access the camera. Please make sure you've granted the necessary permissions.");
     }
 }
 
 async function loop() {
-    webcam.update(); // update the webcam frame
+    webcam.update();
     await predict();
     window.requestAnimationFrame(loop);
 }
 
-// run the webcam image through the image model
 async function predict() {
-    // predict can take in an image, video or canvas html element
     const prediction = await model.predict(webcam.canvas);
     for (let i = 0; i < maxPredictions; i++) {
         const classPrediction =
@@ -54,5 +62,10 @@ async function predict() {
     }
 }
 
-// Use event listener to handle the button click
+async function switchCamera() {
+    isUsingFrontCamera = !isUsingFrontCamera;
+    await setupWebcam();
+}
+
 document.getElementById('start-button').addEventListener('click', init);
+document.getElementById('switch-camera').addEventListener('click', switchCamera);
