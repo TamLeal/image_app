@@ -1,0 +1,17 @@
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+#webcam-container {
+  margin-top: 20px;
+}
+
+#label-container {
+  margin-top: 20px;
+}
