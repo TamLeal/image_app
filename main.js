@@ -1,7 +1,7 @@
 const URL = "https://teachablemachine.withgoogle.com/models/64kdLVpfa/";
 
 let model, webcam, labelContainer, maxPredictions;
-let currentFacingMode = "user"; // Start with front camera
+let currentStream = null;
 
 // Load the image model and setup the webcam
 async function init() {
@@ -15,23 +15,36 @@ async function init() {
     await setupWebcam();
 }
 
-async function setupWebcam() {
-    const flip = currentFacingMode === "user";
-    const constraints = {
-        video: {
-            facingMode: currentFacingMode
-        }
-    };
-
-    if (webcam) {
-        webcam.stop();
+async function setupWebcam(deviceId = null) {
+    if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
     }
 
-    webcam = new tmImage.Webcam(200, 200, flip);
+    const constraints = {
+        video: deviceId ? {deviceId: {exact: deviceId}} : true
+    };
+
     try {
-        await webcam.setup(constraints);
-        await webcam.play();
-        window.requestAnimationFrame(loop);
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        currentStream = stream;
+        
+        const videoElement = document.createElement('video');
+        videoElement.srcObject = stream;
+        videoElement.onloadedmetadata = () => {
+            videoElement.play();
+        };
+
+        webcam = new tmImage.Webcam(200, 200, true); // flip width and height
+        webcam.canvas.width = 200;
+        webcam.canvas.height = 200;
+
+        function updateCanvas() {
+            if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
+                webcam.canvas.getContext('2d').drawImage(videoElement, 0, 0, webcam.canvas.width, webcam.canvas.height);
+            }
+            requestAnimationFrame(updateCanvas);
+        }
+        updateCanvas();
 
         document.getElementById("webcam-container").innerHTML = '';
         document.getElementById("webcam-container").appendChild(webcam.canvas);
@@ -41,6 +54,8 @@ async function setupWebcam() {
         for (let i = 0; i < maxPredictions; i++) {
             labelContainer.appendChild(document.createElement("div"));
         }
+
+        window.requestAnimationFrame(loop);
     } catch (error) {
         console.error("Error setting up webcam:", error);
         alert("Failed to access the camera. Please make sure you've granted the necessary permissions.");
@@ -48,7 +63,6 @@ async function setupWebcam() {
 }
 
 async function loop() {
-    webcam.update();
     await predict();
     window.requestAnimationFrame(loop);
 }
@@ -63,8 +77,27 @@ async function predict() {
 }
 
 async function switchCamera() {
-    currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
-    await setupWebcam();
+    try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        
+        if (videoDevices.length < 2) {
+            alert("No additional camera found on this device.");
+            return;
+        }
+        
+        let currentDeviceId = currentStream.getVideoTracks()[0].getSettings().deviceId;
+        let nextDevice = videoDevices.find(device => device.deviceId !== currentDeviceId);
+        
+        if (nextDevice) {
+            await setupWebcam(nextDevice.deviceId);
+        } else {
+            alert("Failed to switch camera. Please try again.");
+        }
+    } catch (error) {
+        console.error("Error switching camera:", error);
+        alert("An error occurred while trying to switch the camera.");
+    }
 }
 
 document.getElementById('start-button').addEventListener('click', init);
