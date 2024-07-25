@@ -12,8 +12,13 @@ async function init() {
     maxPredictions = model.getTotalClasses();
 
     // Convenience function to setup a webcam
-    const flip = true; // whether to flip the webcam
-    webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+    const flip = false; // don't flip the webcam for rear camera
+    const constraints = {
+        video: {
+            facingMode: { exact: "environment" } // Use the rear camera
+        }
+    };
+    webcam = new tmImage.Webcam(200, 200, flip, constraints); // width, height, flip, constraints
     await webcam.setup(); // request access to the webcam
     await webcam.play();
     window.requestAnimationFrame(loop);
