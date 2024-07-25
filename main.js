@@ -3,10 +3,16 @@ const URL = "https://teachablemachine.withgoogle.com/models/64kdLVpfa/";
 let model, labelContainer, maxPredictions;
 let isUsingFrontCamera = false;
 
+function updateDebugInfo(message) {
+    const debugElement = document.getElementById('debug-info');
+    debugElement.innerHTML += message + '<br>';
+    console.log(message);
+}
+
 async function init() {
+    updateDebugInfo('Initializing...');
     if (typeof Webcam === 'undefined') {
-        console.error('Webcam.js is not loaded. Please check your internet connection and try again.');
-        alert('Failed to load necessary resources. Please check your internet connection and try again.');
+        updateDebugInfo('Webcam.js is not loaded. Please check your internet connection.');
         return;
     }
 
@@ -14,22 +20,23 @@ async function init() {
     const metadataURL = URL + "metadata.json";
 
     try {
+        updateDebugInfo('Loading model...');
         model = await tmImage.load(modelURL, metadataURL);
         maxPredictions = model.getTotalClasses();
+        updateDebugInfo('Model loaded successfully.');
         setupWebcam();
     } catch (error) {
-        console.error('Error initializing:', error);
+        updateDebugInfo('Error loading the model: ' + error.message);
         if (error.name === 'OverconstrainedError') {
-            alert('Unable to access the camera with the specified constraints. Trying with default settings.');
-            isUsingFrontCamera = true; // Fall back to front camera
+            updateDebugInfo('Trying with default camera settings.');
+            isUsingFrontCamera = true;
             setupWebcam();
-        } else {
-            alert('Failed to initialize. Please check console for details and try again.');
         }
     }
 }
 
 function setupWebcam() {
+    updateDebugInfo('Setting up webcam...');
     const constraints = {
         width: 320,
         height: 240,
@@ -45,17 +52,23 @@ function setupWebcam() {
 
     Webcam.attach('#webcam-container');
 
-    labelContainer = document.getElementById("label-container");
-    labelContainer.innerHTML = ''; // Clear existing content
-    for (let i = 0; i < maxPredictions; i++) {
-        labelContainer.appendChild(document.createElement("div"));
-    }
+    Webcam.on('error', function(err) {
+        updateDebugInfo('Webcam error: ' + err);
+    });
 
-    // Start prediction loop
-    setTimeout(predictLoop, 1000); // Give some time for the camera to initialize
+    Webcam.on('live', function() {
+        updateDebugInfo('Webcam is live!');
+        labelContainer = document.getElementById("label-container");
+        labelContainer.innerHTML = '';
+        for (let i = 0; i < maxPredictions; i++) {
+            labelContainer.appendChild(document.createElement("div"));
+        }
+        setTimeout(predictLoop, 1000);
+    });
 }
 
 async function switchCamera() {
+    updateDebugInfo('Switching camera...');
     isUsingFrontCamera = !isUsingFrontCamera;
     Webcam.reset();
     setupWebcam();
@@ -63,28 +76,37 @@ async function switchCamera() {
 
 async function predictLoop() {
     if (!Webcam.loaded) {
+        updateDebugInfo('Webcam not ready, retrying...');
         setTimeout(predictLoop, 1000);
         return;
     }
 
-    Webcam.snap(async function(data_uri) {
-        const image = new Image();
-        image.src = data_uri;
-        image.onload = async function() {
-            const prediction = await model.predict(image);
-            for (let i = 0; i < maxPredictions; i++) {
-                const classPrediction =
-                    prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-                labelContainer.childNodes[i].innerHTML = classPrediction;
-            }
-        };
-    });
+    try {
+        Webcam.snap(async function(data_uri) {
+            const image = new Image();
+            image.src = data_uri;
+            image.onload = async function() {
+                try {
+                    const prediction = await model.predict(image);
+                    for (let i = 0; i < maxPredictions; i++) {
+                        const classPrediction =
+                            prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+                        labelContainer.childNodes[i].innerHTML = classPrediction;
+                    }
+                } catch (error) {
+                    updateDebugInfo('Prediction error: ' + error.message);
+                }
+            };
+        });
+    } catch (error) {
+        updateDebugInfo('Error in predict loop: ' + error.message);
+    }
 
-    // Call this function again after a short delay
     setTimeout(predictLoop, 100);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('start-button').addEventListener('click', init);
     document.getElementById('switch-camera').addEventListener('click', switchCamera);
+    updateDebugInfo('Page loaded. Click "Start" to begin.');
 });
