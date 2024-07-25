@@ -8,7 +8,7 @@ export default defineConfig({
       output: {
         manualChunks: undefined,
       },
-      external: ['main.js', 'style.css'], // Adicione esta linha para externalizar o JS e CSS
+      external: ['./main.js', './style.css'], // Externalize JS and CSS
     },
   },
   server: {
