@@ -1,17 +1,55 @@
 body {
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100vh;
   margin: 0;
+  background-color: #f0f0f0;
   font-family: Arial, sans-serif;
 }
 
-#webcam-container {
+.container {
+  text-align: center;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+
+.btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn:hover {
+  background-color: #0056b3;
+}
+
+.webcam-container {
   margin-top: 20px;
 }
 
-#label-container {
+.webcam-container canvas {
+  border: 2px solid #007bff;
+  border-radius: 8px;
+}
+
+.label-container {
   margin-top: 20px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.label-container div {
+  margin-top: 10px;
 }
