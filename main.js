@@ -38,7 +38,9 @@ function setupWebcam() {
             height: 200,
             image_format: 'jpeg',
             jpeg_quality: 90,
-            facingMode: isUsingFrontCamera ? "user" : "environment"
+            constraints: {
+                facingMode: isUsingFrontCamera ? "user" : "environment"
+            }
         });
 
         Webcam.attach('#webcam-container');
@@ -51,7 +53,7 @@ function setupWebcam() {
         Webcam.on('live', function() {
             updateDebugInfo('Webcam is live!');
             resolve();
-            window.requestAnimationFrame(loop);
+            loop();
         });
     });
 }
@@ -64,13 +66,13 @@ async function switchCamera() {
     updateDebugInfo('Camera switched to ' + (isUsingFrontCamera ? 'front' : 'rear'));
 }
 
-async function loop() {
-    await predict();
-    window.requestAnimationFrame(loop);
+function loop() {
+    predict();
+    setTimeout(loop, 1000); // Predict every second
 }
 
-async function predict() {
-    Webcam.snap(async function(data_uri) {
+function predict() {
+    Webcam.snap(function(data_uri) {
         const image = new Image();
         image.src = data_uri;
         image.onload = async function() {
