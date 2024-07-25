@@ -3,6 +3,7 @@ const URL = "https://teachablemachine.withgoogle.com/models/88_cJRiED/";
 let model, labelContainer, maxPredictions;
 let isUsingFrontCamera = true;
 
+// Load the image model and setup the webcam
 async function init() {
     const modelURL = URL + "model.json";
     const metadataURL = URL + "metadata.json";
@@ -58,14 +59,15 @@ function loop() {
     setTimeout(loop, 1000); // Predict every second
 }
 
-function predict() {
-    Webcam.snap(function(data_uri) {
+async function predict() {
+    Webcam.snap(async function(data_uri) {
         const image = new Image();
         image.src = data_uri;
         image.onload = async function() {
             try {
                 const prediction = await model.predict(image);
                 const names = ["Chair", "Table", "Person", "Other"]; // Adiciona os nomes das novas categorias
+
                 for (let i = 0; i < maxPredictions; i++) {
                     const classPrediction = prediction[i].className;
                     const probability = Math.round(prediction[i].probability * 100); // Arredonda o valor para um número inteiro
@@ -78,7 +80,7 @@ function predict() {
 
                         const name = document.createElement('div');
                         name.className = 'prediction-name';
-                        name.textContent = names[i]; // Adiciona o nome da previsão
+                        name.textContent = classPrediction; // Usa classPrediction para garantir que o rótulo está correto
 
                         const progressBar = document.createElement('div');
                         progressBar.className = 'prediction-progress';
@@ -98,7 +100,7 @@ function predict() {
                         progressFill.style.backgroundColor = classPrediction === 'Chair' ? '#4CAF50' : '#2196F3';
 
                         const name = predictionBar.querySelector('.prediction-name');
-                        name.textContent = names[i];
+                        name.textContent = classPrediction;
                     }
                 }
             } catch (error) {
