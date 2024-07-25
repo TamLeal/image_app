@@ -1,4 +1,4 @@
-const URL = "https://teachablemachine.withgoogle.com/models/64kdLVpfa/";
+const URL = "https://teachablemachine.withgoogle.com/models/XS6L_Bx5x/";
 
 let model, labelContainer, maxPredictions;
 let isUsingFrontCamera = true;
@@ -57,6 +57,7 @@ function loop() {
     predict();
     setTimeout(loop, 1000); // Predict every second
 }
+
 function predict() {
     Webcam.snap(function(data_uri) {
         const image = new Image();
@@ -64,7 +65,7 @@ function predict() {
         image.onload = async function() {
             try {
                 const prediction = await model.predict(image);
-                const names = ["Chair", "Table"]; // Adiciona os nomes das previsões
+                const names = ["Chair", "Table", "Person", "Other"]; // Adiciona os nomes das novas categorias
                 for (let i = 0; i < maxPredictions; i++) {
                     const classPrediction = prediction[i].className;
                     const probability = Math.round(prediction[i].probability * 100); // Arredonda o valor para um número inteiro
@@ -106,8 +107,6 @@ function predict() {
         };
     });
 }
-
-
 
 function handleDOMContentLoaded() {
     const startButton = document.getElementById('start-button');
