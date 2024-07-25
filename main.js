@@ -1,7 +1,7 @@
 const URL = "https://teachablemachine.withgoogle.com/models/64kdLVpfa/";
 
 let model, webcam, labelContainer, maxPredictions;
-let isFrontCamera = false; // Começamos com a câmera traseira
+let isFrontCamera = true;
 
 async function init() {
     const modelURL = URL + "model.json";
@@ -14,10 +14,10 @@ async function init() {
 }
 
 async function setupCamera() {
-    const flip = false; // Não invertemos a imagem para a câmera traseira
+    const flip = isFrontCamera;
     const constraints = {
         video: {
-            facingMode: { exact: "environment" }, // Forçamos o uso da câmera traseira
+            facingMode: isFrontCamera ? "user" : { ideal: "environment" },
             width: { ideal: 200 },
             height: { ideal: 200 }
         }
@@ -28,6 +28,15 @@ async function setupCamera() {
     }
 
     try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        console.log("Dispositivos de vídeo disponíveis:", videoDevices);
+
+        if (videoDevices.length < 2) {
+            console.log("Este dispositivo parece ter apenas uma câmera.");
+            alert("Este dispositivo parece ter apenas uma câmera. A alternância pode não funcionar como esperado.");
+        }
+
         webcam = new tmImage.Webcam(200, 200, flip);
         await webcam.setup(constraints);
         await webcam.play();
@@ -43,24 +52,7 @@ async function setupCamera() {
         }
     } catch (error) {
         console.error("Erro ao configurar a câmera:", error);
-        alert("Falha ao acessar a câmera traseira. Tentando configuração alternativa...");
-        
-        // Tentativa alternativa sem 'exact'
-        try {
-            const alternativeConstraints = {
-                video: {
-                    facingMode: "environment",
-                    width: { ideal: 200 },
-                    height: { ideal: 200 }
-                }
-            };
-            await webcam.setup(alternativeConstraints);
-            await webcam.play();
-            window.requestAnimationFrame(loop);
-        } catch (fallbackError) {
-            console.error("Erro na configuração alternativa:", fallbackError);
-            alert("Falha ao acessar a câmera. Por favor, verifique as permissões e tente novamente.");
-        }
+        alert("Falha ao acessar a câmera. Por favor, verifique as permissões e tente novamente.");
     }
 }
 
@@ -71,11 +63,17 @@ async function loop() {
 }
 
 async function predict() {
-    const prediction = await model.predict(webcam.canvas);
-    for (let i = 0; i < maxPredictions; i++) {
-        const classPrediction =
-            prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-        labelContainer.childNodes[i].innerHTML = classPrediction;
+    if (webcam.canvas) {
+        try {
+            const prediction = await model.predict(webcam.canvas);
+            for (let i = 0; i < maxPredictions; i++) {
+                const classPrediction =
+                    prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+                labelContainer.childNodes[i].innerHTML = classPrediction;
+            }
+        } catch (error) {
+            console.error("Erro na predição:", error);
+        }
     }
 }
 
