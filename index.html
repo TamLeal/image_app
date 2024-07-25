@@ -12,11 +12,15 @@
         <h1>Teachable Machine Image Model</h1>
         <button type="button" id="start-button" class="btn">Start</button>
         <button type="button" id="switch-camera" class="btn"><i class="fas fa-sync"></i></button>
-        <div id="webcam-container" class="webcam-container"></div>
+        
+        <!-- Novo elemento para o container da webcam -->
+        <div id="webcam-container" style="width:320px; height:240px;"></div>
+        
         <div id="label-container" class="label-container"></div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <script src="/js/webcamjs/webcam.js"></script>
     <script type="module" src="./main.js"></script>
 </body>
 </html>
