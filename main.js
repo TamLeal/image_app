@@ -1,6 +1,6 @@
 const URL = "https://teachablemachine.withgoogle.com/models/64kdLVpfa/";
 
-let model, webcam, labelContainer, maxPredictions;
+let model, labelContainer, maxPredictions;
 let isUsingFrontCamera = true;
 
 function updateDebugInfo(message) {
@@ -31,94 +31,61 @@ async function init() {
     }
 }
 
-async function setupWebcam() {
-    updateDebugInfo('Setting up webcam...');
-    const flip = isUsingFrontCamera;
-    const constraints = {
-        video: {
-            facingMode: isUsingFrontCamera ? "user" : "environment",
-            width: { ideal: 200 },
-            height: { ideal: 200 }
-        }
-    };
+function setupWebcam() {
+    return new Promise((resolve, reject) => {
+        Webcam.set({
+            width: 200,
+            height: 200,
+            image_format: 'jpeg',
+            jpeg_quality: 90,
+            facingMode: isUsingFrontCamera ? "user" : "environment"
+        });
 
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        updateDebugInfo('Got media stream.');
+        Webcam.attach('#webcam-container');
 
-        const videoElement = document.createElement('video');
-        videoElement.srcObject = stream;
-        videoElement.onloadedmetadata = () => {
-            videoElement.play();
-            updateDebugInfo('Video element is playing.');
-        };
+        Webcam.on('error', function(err) {
+            updateDebugInfo('Webcam error: ' + err);
+            reject(err);
+        });
 
-        webcam = new tmImage.Webcam(200, 200, flip);
-        updateDebugInfo('tmImage.Webcam created.');
-
-        if (!webcam.canvas) {
-            updateDebugInfo('Webcam canvas is undefined. Creating a new canvas.');
-            webcam.canvas = document.createElement('canvas');
-        }
-
-        webcam.canvas.width = 200;
-        webcam.canvas.height = 200;
-
-        function updateCanvas() {
-            if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
-                const ctx = webcam.canvas.getContext('2d');
-                ctx.drawImage(videoElement, 0, 0, webcam.canvas.width, webcam.canvas.height);
-            }
-            requestAnimationFrame(updateCanvas);
-        }
-        updateCanvas();
-
-        const webcamContainer = document.getElementById("webcam-container");
-        if (webcamContainer) {
-            webcamContainer.innerHTML = '';
-            webcamContainer.appendChild(webcam.canvas);
-            updateDebugInfo('Webcam canvas added to container.');
-        } else {
-            updateDebugInfo('Webcam container not found in DOM.');
-        }
-
-        window.requestAnimationFrame(loop);
-        updateDebugInfo('Webcam setup complete.');
-    } catch (error) {
-        updateDebugInfo('Error setting up webcam: ' + error.message);
-    }
+        Webcam.on('live', function() {
+            updateDebugInfo('Webcam is live!');
+            resolve();
+            window.requestAnimationFrame(loop);
+        });
+    });
 }
 
 async function switchCamera() {
     updateDebugInfo('Switching camera...');
     isUsingFrontCamera = !isUsingFrontCamera;
+    Webcam.reset();
     await setupWebcam();
     updateDebugInfo('Camera switched to ' + (isUsingFrontCamera ? 'front' : 'rear'));
 }
 
 async function loop() {
-    if (webcam && webcam.update) {
-        webcam.update();
-    }
     await predict();
     window.requestAnimationFrame(loop);
 }
 
 async function predict() {
-    if (webcam && webcam.canvas) {
-        try {
-            const prediction = await model.predict(webcam.canvas);
-            for (let i = 0; i < maxPredictions; i++) {
-                const classPrediction =
-                    prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-                if (labelContainer && labelContainer.childNodes[i]) {
+    Webcam.snap(async function(data_uri) {
+        const image = new Image();
+        image.src = data_uri;
+        image.onload = async function() {
+            try {
+                const prediction = await model.predict(image);
+                for (let i = 0; i < maxPredictions; i++) {
+                    const classPrediction =
+                        prediction[i].className + ": " + prediction[i].probability.toFixed(2);
                     labelContainer.childNodes[i].innerHTML = classPrediction;
                 }
+            } catch (error) {
+                updateDebugInfo('Prediction error: ' + error.message);
             }
-        } catch (error) {
-            updateDebugInfo('Prediction error: ' + error.message);
-        }
-    }
+        };
+    });
 }
 
 function handleDOMContentLoaded() {
