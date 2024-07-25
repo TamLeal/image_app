@@ -1,7 +1,7 @@
 const URL = "https://teachablemachine.withgoogle.com/models/64kdLVpfa/";
 
 let model, webcam, labelContainer, maxPredictions;
-let isFrontCamera = true;
+let isFrontCamera = false; // Começamos com a câmera traseira
 
 async function init() {
     const modelURL = URL + "model.json";
@@ -14,10 +14,10 @@ async function init() {
 }
 
 async function setupCamera() {
-    const flip = isFrontCamera;
+    const flip = false; // Não invertemos a imagem para a câmera traseira
     const constraints = {
         video: {
-            facingMode: isFrontCamera ? "user" : "environment",
+            facingMode: { exact: "environment" }, // Forçamos o uso da câmera traseira
             width: { ideal: 200 },
             height: { ideal: 200 }
         }
@@ -43,7 +43,24 @@ async function setupCamera() {
         }
     } catch (error) {
         console.error("Erro ao configurar a câmera:", error);
-        alert("Falha ao acessar a câmera. Por favor, verifique as permissões e tente novamente.");
+        alert("Falha ao acessar a câmera traseira. Tentando configuração alternativa...");
+        
+        // Tentativa alternativa sem 'exact'
+        try {
+            const alternativeConstraints = {
+                video: {
+                    facingMode: "environment",
+                    width: { ideal: 200 },
+                    height: { ideal: 200 }
+                }
+            };
+            await webcam.setup(alternativeConstraints);
+            await webcam.play();
+            window.requestAnimationFrame(loop);
+        } catch (fallbackError) {
+            console.error("Erro na configuração alternativa:", fallbackError);
+            alert("Falha ao acessar a câmera. Por favor, verifique as permissões e tente novamente.");
+        }
     }
 }
 
