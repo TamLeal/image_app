@@ -13,26 +13,8 @@ async function init() {
         
         await setupWebcam();
         labelContainer = document.getElementById("label-container");
-        
-        // Create prediction bars
         for (let i = 0; i < maxPredictions; i++) {
-            const predictionBar = document.createElement("div");
-            predictionBar.className = "prediction-bar";
-            
-            const label = document.createElement("div");
-            label.className = "prediction-label";
-            label.textContent = model.getClassLabels()[i];
-            
-            const progressBar = document.createElement("div");
-            progressBar.className = "prediction-progress";
-            
-            const progressFill = document.createElement("div");
-            progressFill.className = "prediction-fill";
-            
-            progressBar.appendChild(progressFill);
-            predictionBar.appendChild(label);
-            predictionBar.appendChild(progressBar);
-            labelContainer.appendChild(predictionBar);
+            labelContainer.appendChild(document.createElement("div"));
         }
     } catch (error) {
         console.error('Error initializing:', error);
@@ -88,13 +70,20 @@ function predict() {
                     const probability = classPrediction.probability.toFixed(2);
                     const percent = (probability * 100).toFixed(0);
                     
-                    const predictionBar = labelContainer.childNodes[i];
-                    const progressFill = predictionBar.querySelector('.prediction-fill');
-                    progressFill.style.width = `${percent}%`;
-                    progressFill.style.backgroundColor = percent > 50 ? '#800080' : '#FFA500';
-                                        
-                    const label = predictionBar.querySelector('.prediction-label');
-                    label.textContent = `${classPrediction.className}: ${percent}%`;
+                    // Cria ou atualiza a barra de progresso
+                    let predictionBar = labelContainer.childNodes[i];
+                    if (!predictionBar) {
+                        predictionBar = document.createElement("div");
+                        predictionBar.className = "prediction-bar";
+                        labelContainer.appendChild(predictionBar);
+                    }
+                    
+                    predictionBar.innerHTML = `
+                        <div class="prediction-label">${classPrediction.className}: ${percent}%</div>
+                        <div class="prediction-progress">
+                            <div class="prediction-fill" style="width: ${percent}%; background-color: ${percent > 50 ? '#800080' : '#FFA500'}"></div>
+                        </div>
+                    `;
                 }
             } catch (error) {
                 console.error('Prediction error:', error);
