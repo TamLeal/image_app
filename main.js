@@ -1,4 +1,4 @@
-const URL = "https://teachablemachine.withgoogle.com/models/XS6L_Bx5x/";
+const URL = "https://teachablemachine.withgoogle.com/models/88_cJRiED/";
 
 let model, labelContainer, maxPredictions;
 let isUsingFrontCamera = true;
