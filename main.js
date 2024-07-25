@@ -4,9 +4,10 @@ let model, labelContainer, maxPredictions;
 let isUsingFrontCamera = false;
 
 function updateDebugInfo(message) {
-    const debugElement = document.getElementById('debug-info');
-    debugElement.innerHTML += message + '<br>';
     console.log(message);
+    const debugElement = document.getElementById('debug-info');
+    debugElement.textContent += message + '\n';
+    debugElement.scrollTop = debugElement.scrollHeight;
 }
 
 async function init() {
@@ -106,7 +107,10 @@ async function predictLoop() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    updateDebugInfo('Page loaded. Click "Start" to begin.');
     document.getElementById('start-button').addEventListener('click', init);
     document.getElementById('switch-camera').addEventListener('click', switchCamera);
-    updateDebugInfo('Page loaded. Click "Start" to begin.');
 });
+
+// Immediately invoke to log any early errors
+updateDebugInfo('Script loaded and running.');

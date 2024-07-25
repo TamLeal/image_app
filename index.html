@@ -9,6 +9,16 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.26/webcam.min.js"></script>
+    <style>
+        #debug-info {
+            margin-top: 20px;
+            color: red;
+            background-color: #ffeeee;
+            padding: 10px;
+            border: 1px solid red;
+            white-space: pre-wrap;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -19,7 +29,7 @@
         <div id="webcam-container" style="width:320px; height:240px;"></div>
         
         <div id="label-container" class="label-container"></div>
-        <div id="debug-info" style="margin-top: 20px; color: red;"></div>
+        <div id="debug-info"></div>
     </div>
     <script src="./main.js" defer></script>
 </body>
