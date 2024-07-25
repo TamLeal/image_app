@@ -1,7 +1,7 @@
 const URL = "https://teachablemachine.withgoogle.com/models/64kdLVpfa/";
 
 let model, webcam, labelContainer, maxPredictions;
-let isUsingFrontCamera = true;
+let currentFacingMode = "user"; // Start with front camera
 
 // Load the image model and setup the webcam
 async function init() {
@@ -16,10 +16,10 @@ async function init() {
 }
 
 async function setupWebcam() {
-    const flip = isUsingFrontCamera;
+    const flip = currentFacingMode === "user";
     const constraints = {
         video: {
-            facingMode: isUsingFrontCamera ? "user" : { exact: "environment" }
+            facingMode: currentFacingMode
         }
     };
 
@@ -63,7 +63,7 @@ async function predict() {
 }
 
 async function switchCamera() {
-    isUsingFrontCamera = !isUsingFrontCamera;
+    currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
     await setupWebcam();
 }
 
