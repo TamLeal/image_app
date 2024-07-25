@@ -54,11 +54,12 @@ body {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
+  width:400px;
 }
 
 .prediction-label {
-  width: 150px;
-  text-align: right;
+  width: 100px;
+  text-align: center;
   margin-right: 10px;
 }
 
