@@ -57,7 +57,6 @@ function loop() {
     predict();
     setTimeout(loop, 1000); // Predict every second
 }
-
 function predict() {
     Webcam.snap(function(data_uri) {
         const image = new Image();
@@ -65,37 +64,41 @@ function predict() {
         image.onload = async function() {
             try {
                 const prediction = await model.predict(image);
+                const names = ["Chair", "Table"]; // Adiciona os nomes das previsões
                 for (let i = 0; i < maxPredictions; i++) {
                     const classPrediction = prediction[i].className;
-                    const probability = prediction[i].probability.toFixed(2);
-                    
+                    const probability = Math.round(prediction[i].probability * 100); // Arredonda o valor para um número inteiro
+
                     // Criar ou atualizar a barra de progresso
                     let predictionBar = labelContainer.childNodes[i];
                     if (!predictionBar.classList.contains('prediction-bar')) {
                         predictionBar.innerHTML = '';
                         predictionBar.className = 'prediction-bar';
-                        
-                        const label = document.createElement('div');
-                        label.className = 'prediction-label';
-                        label.textContent = classPrediction;
-                        
+
+                        const name = document.createElement('div');
+                        name.className = 'prediction-name';
+                        name.textContent = names[i]; // Adiciona o nome da previsão
+
                         const progressBar = document.createElement('div');
                         progressBar.className = 'prediction-progress';
-                        
+
                         const progressFill = document.createElement('div');
                         progressFill.className = 'prediction-fill';
-                        
+                        progressFill.style.width = `${probability}%`;
+                        progressFill.textContent = `${probability}%`;
+
                         progressBar.appendChild(progressFill);
-                        predictionBar.appendChild(label);
+                        predictionBar.appendChild(name); // Adiciona o nome antes da barra de progresso
                         predictionBar.appendChild(progressBar);
+                    } else {
+                        const progressFill = predictionBar.querySelector('.prediction-fill');
+                        progressFill.style.width = `${probability}%`;
+                        progressFill.textContent = `${probability}%`;
+                        progressFill.style.backgroundColor = classPrediction === 'Chair' ? '#4CAF50' : '#2196F3';
+
+                        const name = predictionBar.querySelector('.prediction-name');
+                        name.textContent = names[i];
                     }
-                    
-                    const progressFill = predictionBar.querySelector('.prediction-fill');
-                    progressFill.style.width = `${probability * 100}%`;
-                    progressFill.style.backgroundColor = classPrediction === 'cadeira' ? '#4CAF50' : '#2196F3';
-                    
-                    const label = predictionBar.querySelector('.prediction-label');
-                    label.textContent = `${classPrediction}: ${probability}`;
                 }
             } catch (error) {
                 console.error('Prediction error:', error);
@@ -103,6 +106,8 @@ function predict() {
         };
     });
 }
+
+
 
 function handleDOMContentLoaded() {
     const startButton = document.getElementById('start-button');
