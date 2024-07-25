@@ -18,21 +18,30 @@ async function init() {
         maxPredictions = model.getTotalClasses();
         setupWebcam();
     } catch (error) {
-        console.error('Error loading the model:', error);
-        alert('Failed to load the model. Please try again later.');
+        console.error('Error initializing:', error);
+        if (error.name === 'OverconstrainedError') {
+            alert('Unable to access the camera with the specified constraints. Trying with default settings.');
+            isUsingFrontCamera = true; // Fall back to front camera
+            setupWebcam();
+        } else {
+            alert('Failed to initialize. Please check console for details and try again.');
+        }
     }
 }
 
 function setupWebcam() {
-    Webcam.set({
+    const constraints = {
         width: 320,
         height: 240,
         image_format: 'jpeg',
-        jpeg_quality: 90,
-        constraints: {
-            facingMode: isUsingFrontCamera ? "user" : { exact: "environment" }
-        }
-    });
+        jpeg_quality: 90
+    };
+
+    if (!isUsingFrontCamera) {
+        constraints.facingMode = { ideal: "environment" };
+    }
+
+    Webcam.set(constraints);
 
     Webcam.attach('#webcam-container');
 
