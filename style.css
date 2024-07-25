@@ -46,6 +46,28 @@ body {
   margin-top: 20px;
 }
 
-#label-container div {
-  margin: 5px 0;
+.prediction-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.prediction-label {
+  width: 100px;
+  text-align: right;
+  margin-right: 10px;
+}
+
+.prediction-progress {
+  flex-grow: 1;
+  height: 20px;
+  background-color: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.prediction-fill {
+  height: 100%;
+  background-color: #4CAF50;
+  transition: width 0.3s ease;
 }
