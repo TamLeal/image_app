@@ -24,8 +24,8 @@ async function init() {
 function setupWebcam() {
     return new Promise((resolve, reject) => {
         Webcam.set({
-            width: 200,
-            height: 200,
+            width: 300,
+            height: 300,
             image_format: 'jpeg',
             jpeg_quality: 90,
             constraints: {
