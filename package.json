@@ -1,10 +1,11 @@
 {
-  "name": "my-app",
+  "name": "your-project-name",
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "serve": "vite preview"
+    "preview": "vite preview",
+    "start": "vite preview --port $PORT"
   },
   "dependencies": {
     "vite": "^2.0.0",

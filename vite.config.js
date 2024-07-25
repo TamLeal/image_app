@@ -17,5 +17,7 @@ export default defineConfig({
       'js': 'application/javascript',
       'css': 'text/css'
     }
-  }
+  },
+  // Adicione esta configuração para garantir que os arquivos JS sejam servidos corretamente
+  assetsInclude: ['**/*.js'],
 });
