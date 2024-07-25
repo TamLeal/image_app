@@ -4,10 +4,11 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     rollupOptions: {
-      input: '/index.html',
+      input: 'index.html',
       output: {
         manualChunks: undefined,
       },
+      external: ['style.css'], // Adicione esta linha para externalizar o CSS
     },
   },
   server: {
