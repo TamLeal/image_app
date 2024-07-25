@@ -49,6 +49,7 @@ body {
 #label-container div {
   margin: 5px 0;
 }
+
 .prediction-bar {
   display: flex;
   align-items: center;

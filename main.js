@@ -66,9 +66,36 @@ function predict() {
             try {
                 const prediction = await model.predict(image);
                 for (let i = 0; i < maxPredictions; i++) {
-                    const classPrediction =
-                        prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-                    labelContainer.childNodes[i].innerHTML = classPrediction;
+                    const classPrediction = prediction[i].className;
+                    const probability = prediction[i].probability.toFixed(2);
+                    
+                    // Criar ou atualizar a barra de progresso
+                    let predictionBar = labelContainer.childNodes[i];
+                    if (!predictionBar.classList.contains('prediction-bar')) {
+                        predictionBar.innerHTML = '';
+                        predictionBar.className = 'prediction-bar';
+                        
+                        const label = document.createElement('div');
+                        label.className = 'prediction-label';
+                        label.textContent = classPrediction;
+                        
+                        const progressBar = document.createElement('div');
+                        progressBar.className = 'prediction-progress';
+                        
+                        const progressFill = document.createElement('div');
+                        progressFill.className = 'prediction-fill';
+                        
+                        progressBar.appendChild(progressFill);
+                        predictionBar.appendChild(label);
+                        predictionBar.appendChild(progressBar);
+                    }
+                    
+                    const progressFill = predictionBar.querySelector('.prediction-fill');
+                    progressFill.style.width = `${probability * 100}%`;
+                    progressFill.style.backgroundColor = classPrediction === 'cadeira' ? '#4CAF50' : '#2196F3';
+                    
+                    const label = predictionBar.querySelector('.prediction-label');
+                    label.textContent = `${classPrediction}: ${probability}`;
                 }
             } catch (error) {
                 console.error('Prediction error:', error);
