@@ -7,12 +7,12 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Teachable Machine Image Model</h1>
-        <button type="button" id="start-button" class="btn">Start</button>
-        <div id="webcam-container" class="webcam-container"></div>
-        <div id="label-container" class="label-container"></div>
-    </div>
-    <script type="module" src="main.js"></script>
+    <div>Teachable Machine Image Model</div>
+    <button type="button" id="start-button">Start</button>
+    <div id="webcam-container"></div>
+    <div id="label-container"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
