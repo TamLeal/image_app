@@ -32,36 +32,55 @@ async function init() {
 }
 
 async function setupWebcam() {
+    updateDebugInfo('Setting up webcam...');
     const flip = isUsingFrontCamera;
     const constraints = {
-        facingMode: isUsingFrontCamera ? "user" : "environment",
-        width: 200,
-        height: 200
+        video: {
+            facingMode: isUsingFrontCamera ? "user" : "environment",
+            width: { ideal: 200 },
+            height: { ideal: 200 }
+        }
     };
 
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: constraints });
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        updateDebugInfo('Got media stream.');
+
         const videoElement = document.createElement('video');
         videoElement.srcObject = stream;
         videoElement.onloadedmetadata = () => {
             videoElement.play();
+            updateDebugInfo('Video element is playing.');
         };
 
         webcam = new tmImage.Webcam(200, 200, flip);
+        updateDebugInfo('tmImage.Webcam created.');
+
+        if (!webcam.canvas) {
+            updateDebugInfo('Webcam canvas is undefined. Creating a new canvas.');
+            webcam.canvas = document.createElement('canvas');
+        }
+
         webcam.canvas.width = 200;
         webcam.canvas.height = 200;
 
         function updateCanvas() {
             if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
-                webcam.canvas.getContext('2d').drawImage(videoElement, 0, 0, webcam.canvas.width, webcam.canvas.height);
+                const ctx = webcam.canvas.getContext('2d');
+                ctx.drawImage(videoElement, 0, 0, webcam.canvas.width, webcam.canvas.height);
             }
             requestAnimationFrame(updateCanvas);
         }
         updateCanvas();
 
         const webcamContainer = document.getElementById("webcam-container");
-        webcamContainer.innerHTML = '';
-        webcamContainer.appendChild(webcam.canvas);
+        if (webcamContainer) {
+            webcamContainer.innerHTML = '';
+            webcamContainer.appendChild(webcam.canvas);
+            updateDebugInfo('Webcam canvas added to container.');
+        } else {
+            updateDebugInfo('Webcam container not found in DOM.');
+        }
 
         window.requestAnimationFrame(loop);
         updateDebugInfo('Webcam setup complete.');
@@ -78,18 +97,26 @@ async function switchCamera() {
 }
 
 async function loop() {
-    webcam.update();
+    if (webcam && webcam.update) {
+        webcam.update();
+    }
     await predict();
     window.requestAnimationFrame(loop);
 }
 
 async function predict() {
-    if (webcam.canvas) {
-        const prediction = await model.predict(webcam.canvas);
-        for (let i = 0; i < maxPredictions; i++) {
-            const classPrediction =
-                prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-            labelContainer.childNodes[i].innerHTML = classPrediction;
+    if (webcam && webcam.canvas) {
+        try {
+            const prediction = await model.predict(webcam.canvas);
+            for (let i = 0; i < maxPredictions; i++) {
+                const classPrediction =
+                    prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+                if (labelContainer && labelContainer.childNodes[i]) {
+                    labelContainer.childNodes[i].innerHTML = classPrediction;
+                }
+            }
+        } catch (error) {
+            updateDebugInfo('Prediction error: ' + error.message);
         }
     }
 }
