@@ -14,21 +14,26 @@ async function init() {
     // Set up the webcam with constraints to use the rear camera
     const constraints = {
         video: {
-            facingMode: "environment" // Use the rear camera
+            facingMode: { exact: "environment" } // Use the rear camera
         }
     };
 
     const flip = false; // Don't flip the webcam
     webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
-    await webcam.setup(constraints); // Pass constraints here
-    await webcam.play();
-    window.requestAnimationFrame(loop);
+    try {
+        await webcam.setup(constraints); // Pass constraints here
+        await webcam.play();
+        window.requestAnimationFrame(loop);
 
-    // append elements to the DOM
-    document.getElementById("webcam-container").appendChild(webcam.canvas);
-    labelContainer = document.getElementById("label-container");
-    for (let i = 0; i < maxPredictions; i++) { // and class labels
-        labelContainer.appendChild(document.createElement("div"));
+        // append elements to the DOM
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+        labelContainer = document.getElementById("label-container");
+        for (let i = 0; i < maxPredictions; i++) { // and class labels
+            labelContainer.appendChild(document.createElement("div"));
+        }
+    } catch (error) {
+        console.error("Error setting up webcam:", error);
+        alert("Failed to access the rear camera. Please make sure you've granted the necessary permissions and that your device has a rear camera.");
     }
 }
 
